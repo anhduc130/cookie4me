@@ -20,10 +20,31 @@ void setup() {
 }
 
 void loop() {
-  checkID();
+  displayLCDWelcome();
+  
+  while(last_card_read == 0) {
+    checkID();
+  }
+
+  lcd.clear();
+  lcd.cursorTo(0, 0);
+  
+  // send RFID tag with anh duc then to joey and confirm
+  boolean accessGranted;
+  if(accessGranted){
+    printLCD("YOU GET A COOKIE!!11");
+    dispenseCookie();
+    delay(1000);
+  }
+  else{
+    printLCD("RE-FUCKING-JECTED");
+    delay(2000);
+  }
+  clear();
+  lcd.cursorTo(0, 0);
 }
 
-void dispenseCooke(){
+void dispenseCookie(){
   myservo.write(0);
   delay(2000);
   myservo.write(60);
@@ -31,14 +52,11 @@ void dispenseCooke(){
   myservo.write(0);
 }
 
-void displayLCD(){
- if(displayTitle){
+void displayLCDWelcome(){
     lcd.printLCD("Ayyyy girl,");
     lcd.cursorTo(1,0);
     lcd.printLCD("wan sum cookie?");
     delay(1000);
- }
-  displayTitle = false;
 }
 
 void checkID(){
