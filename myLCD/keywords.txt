@@ -1,0 +1,11 @@
+myLCD	KEYWORD1
+initialize	KEYWORD2
+printCharLCD	KEYWORD2
+commandLCD	KEYWORD2
+writeLCD	KEYWORD2
+cycleEn	KEYWORD2
+clear	KEYWORD2
+cursorHome	KEYWORD2
+cursorTo	KEYWORD2
+printLCD	KEYWORD2
+banner	KEYWORD2
