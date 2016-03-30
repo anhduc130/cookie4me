@@ -20,6 +20,10 @@ unsigned long RFID::get_rfid_id()
 	return _card_id_read;
 }
 
+void RFID::set_last_card_zero(){
+	_card_id_read = 0;
+}
+
 void RFID::begin(int pin_D0, int interrupt_D0, int pin_D1, int interrupt_D1)
 {
 	_bit_counter = 0;
