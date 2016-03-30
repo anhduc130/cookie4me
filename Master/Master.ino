@@ -1,26 +1,37 @@
+/*
+*  Project 2 main code
+*/
+
 #include "Master_constants.h"
-#include <Servo.h>
+
 #include <myLCD.h>
 #include <Rfid.h>
+
+#include <Servo.h>
 #include <stdio.h>
 #include <string.h>
 
 Servo cookie_servo;  //Create a new servo object to control the cookie arm
 
-// rs, en, db0, db1, db2, db3
+// create lcd object with pins rs, en, db0, db1, db2, db3
 myLCD lcd(LCD_RS, LCD_EN, LCD_DB0, LCD_DB1, LCD_DB2, LCD_DB3);
-boolean displayTitle;
 
+// create rfid object (digital IO pins 2 and 3)
 RFID rfid;
+// variable to hold rfid card number, 0 means no card scanned
 unsigned long last_card_read = 0;
 
 void setup() {
-  cookie_servo.attach(COOKIE_SERVO);  // attaches the servo on pin 3 to the servo object
+ 
+ // attach servo pin to servo object and put in default position
+  cookie_servo.attach(COOKIE_SERVO);  
+  cookie_servo.write(0);
   
   lcd.initialize();
-  displayTitle = true;
   
   rfid.initialize();
+  
+  pinMode(PIEZO_PIN, OUTPUT);
 }
 
 void loop() {
@@ -38,17 +49,24 @@ void loop() {
   // send RFID tag with anh duc then to joey and confirm
   boolean accessGranted;
   
-  if(accessGranted){
+  //if(accessGranted){
+  if(last_card_read == 9410488){
+    buzzAccessGranted();
     lcd.printLCD("YOU GET A COOKIE!!11");
-    dispenseCookie();       //dispense cookie
+        
+    dispenseCookie();       //dispense cookie   
     delay(1000);
   }
   else{
     lcd.printLCD("RE-FUCKING-JECTED");
+    buzzAccessDenied();
     delay(2000);
   }
   
-  last_card_read = 0;      //resets last card id
+  //resets last card id
+  rfid.set_last_card_zero();
+  last_card_read = 0;      
+  
   lcd.clear();                   //resets lcd
   lcd.cursorTo(0, 0);
 }
@@ -67,7 +85,6 @@ void displayLCDWelcome(){
     lcd.printLCD("Ayyyy girl,");
     lcd.cursorTo(1,0);
     lcd.printLCD("wan sum cookie?");
-    delay(1000);
 }
 
 //This function uses an RFID and checks for card and reads its ID 
@@ -75,6 +92,23 @@ void displayLCDWelcome(){
 void checkID(){
   if (rfid.is_available()){
     last_card_read = rfid.get_rfid_id();
+  }
+}
+
+// Briefly buzzes the piezo if RFID access granted 
+void buzzAccessGranted(){
+     analogWrite(PIEZO_PIN, 440);
+     delay(300);
+     analogWrite(PIEZO_PIN, 0);
+}
+
+// Rapidly buzzes the piezo if RFID access denied
+void buzzAccessDenied(){
+  for (int i = 0 ; i < 8 ; i++){
+    analogWrite(PIEZO_PIN, 75);
+    delay(100);
+    analogWrite(PIEZO_PIN, 0);
+    delay(100);
   }
 }
 
