@@ -1,0 +1,5 @@
+RFID	KEYWORD1
+initialize	KEYWORD2
+begin	KEYWORD2
+is_available	KEYWORD2
+get_rfid_id	KEYWORD2
