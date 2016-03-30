@@ -14,6 +14,7 @@ class RFID {
 		void begin(int pin_D0, int interrupt_D0, int pin_D1, int interrupt_D1);
 		bool is_available();
 		unsigned long get_rfid_id();
+		void set_last_card_zero();
 	private:
 		static void read_D0();
 		static void read_D1();
