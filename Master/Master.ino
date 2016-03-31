@@ -48,17 +48,24 @@ void loop() {
   
   // send RFID tag with anh duc then to joey and confirm
   boolean accessGranted;
+  char *name = "Bob";
+  char *numCookies = "25";
   
   //if(accessGranted){
   if(last_card_read == 9410488){
     buzzAccessGranted();
-    lcd.printLCD("YOU GET A COOKIE!!11");
+    lcd.printLCD("Enjoy ");
+    lcd.printLCD(name);
+    lcd.cursorTo(1,0);
+    lcd.printLCD("Total: ");
+    lcd.printLCD(numCookies);
+    lcd.cursorTo(0, 0);
         
     dispenseCookie();       //dispense cookie   
     delay(1000);
   }
   else{
-    lcd.printLCD("RE-FUCKING-JECTED");
+    lcd.printLCD("Access Denied.");
     buzzAccessDenied();
     delay(2000);
   }
@@ -82,9 +89,9 @@ void dispenseCookie(){
 
 //Welcome message
 void displayLCDWelcome(){
-    lcd.printLCD("Ayyyy girl,");
+    lcd.printLCD("Please tap RFID.");
     lcd.cursorTo(1,0);
-    lcd.printLCD("wan sum cookie?");
+    lcd.printLCD("   cookie4.me   ");
 }
 
 //This function uses an RFID and checks for card and reads its ID 
