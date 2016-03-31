@@ -1,6 +1,7 @@
 /*
-*  Project 2 main code
-*/
+ *  cookie4.me - ELEC 291 Group 4 - Project 2
+ *  An Internet-enabled, diet-tracking cookie dispenser!
+ */
 
 #include "Master_constants.h"
 
@@ -88,15 +89,15 @@ void dispenseCookie(){
   cookie_servo.write(0);
 }
 
-//Welcome message
+// Welcome message
 void displayLCDWelcome(){
     lcd.printLCD("Please tap RFID.");
     lcd.cursorTo(1,0);
     lcd.printLCD("~~~cookie4.me~~~"); // make this scroll?
 }
 
-//This function uses an RFID and checks for card and reads its ID 
-//returns ID
+// This function uses an RFID and checks for card and reads its ID 
+// returns ID
 void checkID(){
   if (rfid.is_available()){
     last_card_read = rfid.get_rfid_id();
