@@ -54,8 +54,9 @@ void loop() {
   //if(accessGranted){
   if(last_card_read == 9410488){
     buzzAccessGranted();
-    lcd.printLCD("Enjoy ");
+    lcd.printLCD("Enjoy, ");
     lcd.printLCD(name);
+    lcd.printLCD("!");
     lcd.cursorTo(1,0);
     lcd.printLCD("Total: ");
     lcd.printLCD(numCookies);
@@ -91,7 +92,7 @@ void dispenseCookie(){
 void displayLCDWelcome(){
     lcd.printLCD("Please tap RFID.");
     lcd.cursorTo(1,0);
-    lcd.printLCD("   cookie4.me   ");
+    lcd.printLCD("~~~cookie4.me~~~"); // make this scroll?
 }
 
 //This function uses an RFID and checks for card and reads its ID 
