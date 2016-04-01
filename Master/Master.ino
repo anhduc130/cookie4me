@@ -62,7 +62,7 @@ void loop() {
     lcd.printLCD("Total: ");
     lcd.printLCD(numCookies);
     lcd.cursorTo(0, 0);
-        
+
     dispenseCookie();       //dispense cookie   
     delay(1000);
   }
@@ -73,7 +73,6 @@ void loop() {
   }
   
   //resets last card id
-  rfid.set_last_card_zero();
   last_card_read = 0;      
   
   lcd.clear();                   //resets lcd
@@ -93,7 +92,7 @@ void dispenseCookie(){
 void displayLCDWelcome(){
     lcd.printLCD("Please tap RFID.");
     lcd.cursorTo(1,0);
-    lcd.printLCD("~~~cookie4.me~~~"); // make this scroll?
+    lcd.printLCD("(: cookie4.me ;)"); // make this scroll?
 }
 
 // This function uses an RFID and checks for card and reads its ID 

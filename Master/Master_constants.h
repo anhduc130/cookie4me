@@ -12,10 +12,8 @@
 
 #define COOKIE_SERVO 4
 
-#define DOOR_SERVO 444444444444445245345345
-
-#define WIFI_MODULE1 12
-#define WIFI_MODULE2 13
+#define WIFI_MODULE1 0
+#define WIFI_MODULE2 1
 
 // pwm pin
-#define PIEZO_PIN 6
+#define PIEZO_PIN 5
