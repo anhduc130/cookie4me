@@ -17,11 +17,9 @@ void RFID::initialize()
 
 unsigned long RFID::get_rfid_id()
 {
-	return _card_id_read;
-}
-
-void RFID::set_last_card_zero(){
+	unsigned long temp_id = _card_id_read;
 	_card_id_read = 0;
+	return temp_id;
 }
 
 void RFID::begin(int pin_D0, int interrupt_D0, int pin_D1, int interrupt_D1)
