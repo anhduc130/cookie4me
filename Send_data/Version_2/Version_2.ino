@@ -8,7 +8,7 @@ SoftwareSerial esp8266(1,0); // make RX Arduino line is pin 2, make TX Arduino l
                              
 #define SSID "TELUS6815"
 #define PASSWORD "bde840375e"
-#define BUFFER_SIZE 200
+#define BUFFER_SIZE 201
 char *response;
 
 void setup()
@@ -23,10 +23,16 @@ void setup()
   sendData("AT+CIFSR\r\n",2000,DEBUG); // get ip address
   sendData("AT+CIPMUX=1\r\n",2000,DEBUG); // configure for multiple connections
   sendData("AT+CIPSERVER=1,80\r\n",2000,DEBUG); // turn on server on port 80
-  sendData("AT+CIPSTART=0,\"TCP\",\"www.cookie4me.herokuapp.com\",80\r\n",10000,DEBUG);
-  sendData("AT+CIPSEND=0,64\r\n",1000,DEBUG);
-  sendData("GET /verify/123 HTTP/1.1\r\nHost:cookie4me.herokuapp.com\r\n\r\n",5000,DEBUG);
-  parseData("AT+CIPCLOSE\r\n",1000,DEBUG);
+  sendData("AT+CIPSTART=0,\"TCP\",\"www.cookie4me.herokuapp.com\",80\r\n",3000,DEBUG);//10000
+  sendData("AT+CIPSEND=0,61\r\n",1000,DEBUG);
+  sendData("GET /add/abc HTTP/1.1\r\nHost:cookie4me.herokuapp.com\r\n\r\n",3000,DEBUG);
+  sendData("AT+CIPCLOSE=0\r\n",2000,DEBUG);
+  sendData("AT+CIPCLOSE=0\r\n",2000,DEBUG);
+  
+  sendData("AT+CIPSTART=1,\"TCP\",\"www.cookie4me.herokuapp.com\",80\r\n",3000,DEBUG); //5000
+  sendData("AT+CIPSEND=1,64\r\n",1000,DEBUG);
+  sendData("GET /verify/abc HTTP/1.1\r\nHost:cookie4me.herokuapp.com\r\n\r\n",3000,DEBUG);//5000
+  parseData("AT+CIPCLOSE=1\r\n",2000,DEBUG);
 }
  
 void loop()
@@ -74,11 +80,8 @@ void parseData(String command, const int timeout, boolean debug)
         }
       }  
     }
-//    esp8266.println("Start of the response: ");
-//    while (count < BUFFER_SIZE){
-//      esp8266.println(response[count]);
-//      count++;
-//    }
+    esp8266.println("Start of the response: ");
+    esp8266.println(response[0]);
     
     if(debug)
     {
