@@ -23,16 +23,19 @@ void setup()
   sendData("AT+CIFSR\r\n",2000,DEBUG); // get ip address
   sendData("AT+CIPMUX=1\r\n",2000,DEBUG); // configure for multiple connections
   sendData("AT+CIPSERVER=1,80\r\n",2000,DEBUG); // turn on server on port 80
-  sendData("AT+CIPSTART=0,\"TCP\",\"www.cookie4me.herokuapp.com\",80\r\n",3000,DEBUG);//10000
-  sendData("AT+CIPSEND=0,61\r\n",1000,DEBUG);
-  sendData("GET /add/abc HTTP/1.1\r\nHost:cookie4me.herokuapp.com\r\n\r\n",3000,DEBUG);
-  sendData("AT+CIPCLOSE=0\r\n",2000,DEBUG);
-  sendData("AT+CIPCLOSE=0\r\n",2000,DEBUG);
+  //sendData("AT+CIPSTART=0,\"TCP\",\"www.cookie4me.herokuapp.com\",80\r\n",3000,DEBUG);//10000
+  //sendData("AT+CIPSEND=0,61\r\n",1000,DEBUG);
+  //sendData("GET /add/abc HTTP/1.1\r\nHost:cookie4me.herokuapp.com\r\n\r\n",3000,DEBUG);
+  add("abc");
+//  sendData("AT+CIPCLOSE=0\r\n",2000,DEBUG);
+//  sendData("AT+CIPCLOSE=0\r\n",2000,DEBUG);
   
-  sendData("AT+CIPSTART=1,\"TCP\",\"www.cookie4me.herokuapp.com\",80\r\n",3000,DEBUG); //5000
-  sendData("AT+CIPSEND=1,64\r\n",1000,DEBUG);
-  sendData("GET /verify/abc HTTP/1.1\r\nHost:cookie4me.herokuapp.com\r\n\r\n",3000,DEBUG);//5000
-  parseData("AT+CIPCLOSE=1\r\n",2000,DEBUG);
+//  sendData("AT+CIPSTART=1,\"TCP\",\"www.cookie4me.herokuapp.com\",80\r\n",2000,DEBUG); //5000
+//  sendData("AT+CIPSEND=1,64\r\n",1000,DEBUG);
+//  sendData("GET /verify/abc HTTP/1.1\r\nHost:cookie4me.herokuapp.com\r\n\r\n",5000,DEBUG);//5000
+//  parseData("AT+CIPCLOSE=1\r\n",2000,DEBUG);
+//  sendData("AT+CIPCLOSE=1\r\n",2000,DEBUG);
+  verify("abc");
 }
  
 void loop()
@@ -87,4 +90,28 @@ void parseData(String command, const int timeout, boolean debug)
     {
       Serial.print(response);
     }
+}
+
+void add(String key_tag){
+  String command = "GET /add/";
+  command += key_tag;
+  command += " HTTP/1.1\r\nHost:cookie4me.herokuapp.com\r\n\r\n";
+
+  sendData("AT+CIPSTART=0,\"TCP\",\"www.cookie4me.herokuapp.com\",80\r\n",3000,DEBUG);
+  sendData("AT+CIPSEND=0,61\r\n",1000,DEBUG);
+  sendData(command,5000,DEBUG);
+  sendData("AT+CIPCLOSE=0\r\n",2000,DEBUG);
+  sendData("AT+CIPCLOSE=0\r\n",2000,DEBUG);
+}
+
+void verify(String key_tag){
+  String command = "GET /verify/";
+  command += key_tag;
+  command += " HTTP/1.1\r\nHost:cookie4me.herokuapp.com\r\n\r\n";
+
+  sendData("AT+CIPSTART=1,\"TCP\",\"www.cookie4me.herokuapp.com\",80\r\n",2000,DEBUG);
+  sendData("AT+CIPSEND=1,64\r\n",1000,DEBUG);
+  sendData(command,5000,DEBUG);
+  parseData("AT+CIPCLOSE=1\r\n",2000,DEBUG);
+  sendData("AT+CIPCLOSE=1\r\n",2000,DEBUG);
 }
