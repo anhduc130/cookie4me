@@ -13,6 +13,7 @@ char cookies[2];
 
 void setup()
 {
+  pinMode(2,OUTPUT);
   esp8266.begin(115200); // your esp's baud rate might be different
 
   sendData("AT+RST\r\n",1000,DEBUG); // reset module
@@ -37,7 +38,8 @@ void setup()
 //  sendData("AT+CIPCLOSE=1\r\n",2000,DEBUG);
 //  verify("abc");
 
-  add("123");
+  //add("123");
+  //verify("hello");
   verify("123");
 }
  
@@ -97,10 +99,14 @@ void parseData(String command, const int timeout, boolean debug)
       cookieCount[count] = response[count];
       count++;
     }
-    Serial.print("\nThe cookie count is: ");
+//    Serial.print("\nThe cookie count is: ");
+//
+//    for (int i = 0; i < count; i++){
+//      Serial.write(cookieCount[i]);
+//    }
 
-    for (int i = 0; i < count; i++){
-      Serial.write(cookieCount[i]);
+    if (cookieCount[0] == '7'){
+      digitalWrite(2,HIGH);
     }
 
 
