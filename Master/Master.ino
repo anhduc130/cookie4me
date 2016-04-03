@@ -12,6 +12,19 @@
 #include <stdio.h>
 #include <string.h>
 
+#include <SoftwareSerial.h>
+ 
+#define DEBUG 1
+ 
+SoftwareSerial esp8266(1,0); // make RX Arduino line is pin 2, make TX Arduino line is pin 3.
+                             // This means that you need to connect the TX line from the esp to the Arduino's pin 2
+                             // and the RX line from the esp to the Arduino's pin 3
+                             
+#define SSID "TELUS6815"
+#define PASSWORD "bde840375e"
+#define BUFFER_SIZE 201
+char cookieCount[10];
+
 Servo cookie_servo;  //Create a new servo object to control the cookie arm
 
 // create lcd object with pins rs, en, db0, db1, db2, db3
@@ -31,6 +44,8 @@ void setup() {
   lcd.initialize();
   
   rfid.initialize();
+
+  initializeWifiModule();
   
   pinMode(PIEZO_PIN, OUTPUT);
 }
@@ -60,7 +75,7 @@ void loop() {
     lcd.printLCD("!");
     lcd.cursorTo(1,0);
     lcd.printLCD("Total: ");
-    lcd.printLCD(numCookies);
+    lcd.printChar(cookieCount[0]);
     lcd.cursorTo(0, 0);
 
     dispenseCookie();       //dispense cookie   
@@ -78,6 +93,93 @@ void loop() {
   lcd.clear();                   //resets lcd
   lcd.cursorTo(0, 0);
 }
+
+void initializeWifiModule(){
+  pinMode(2,OUTPUT);
+  esp8266.begin(115200); // your esp's baud rate might be different
+
+  sendData("AT+RST\r\n",1000,DEBUG); // reset module
+  sendData("AT+CWJAP=\"Connectify-me\",\"anhduc123\"\r\n",10000,DEBUG);
+  sendData("AT+CWMODE=3\r\n",2000,DEBUG); // configure as access point
+  sendData("AT+CIFSR\r\n",2000,DEBUG); // get ip address
+  sendData("AT+CIPMUX=1\r\n",2000,DEBUG); // configure for multiple connections
+  sendData("AT+CIPSERVER=1,80\r\n",2000,DEBUG); // turn on server on port 80
+
+  verify("123");
+}
+
+void sendData(String command, const int timeout, boolean debug)
+{
+    char response[BUFFER_SIZE];
+    
+    esp8266.print(command); // send the read character to the esp8266
+    
+    long int time = millis();
+    
+    while( (time+timeout) > millis())
+    { 
+    }
+}
+
+void parseData(String command, const int timeout, boolean debug)
+{
+    char response[BUFFER_SIZE];
+    int count = 0;
+    int test = 0;
+    
+    esp8266.print(command); // send the read character to the esp8266
+    
+    long int time = millis();
+    
+    while( (time+timeout) > millis())
+    {
+      while(esp8266.available())
+      {
+        // The esp has data so display its output to the serial window 
+        for(int i = 0; i < BUFFER_SIZE; i++){
+          char c = (char) esp8266.read(); // read the next character.
+          response[i] = c;
+        }
+       }  
+    }
+
+    esp8266.end();
+    Serial.begin(115200);
+    while (response[count] != ','){
+      cookieCount[count] = response[count];
+      count++;
+    }
+
+    if (cookieCount[0] == '7'){
+      digitalWrite(2,HIGH);
+    }
+}
+
+void add(String key_tag){
+  String command = "GET /add/";
+  command += key_tag;
+  command += " HTTP/1.1\r\nHost:cookie4me.herokuapp.com\r\n\r\n";
+
+  sendData("AT+CIPSTART=0,\"TCP\",\"www.cookie4me.herokuapp.com\",80\r\n",3000,DEBUG);
+  sendData("AT+CIPSEND=0,61\r\n",1000,DEBUG);
+  sendData(command,5000,DEBUG);
+  sendData("AT+CIPCLOSE=0\r\n",2000,DEBUG);
+  sendData("AT+CIPCLOSE=0\r\n",2000,DEBUG);
+}
+
+void verify(String key_tag){
+  String command = "GET /verify/";
+  command += key_tag;
+  command += " HTTP/1.1\r\nHost:cookie4me.herokuapp.com\r\n\r\n";
+
+  sendData("AT+CIPSTART=1,\"TCP\",\"www.cookie4me.herokuapp.com\",80\r\n",2000,DEBUG);
+  sendData("AT+CIPSEND=1,64\r\n",1000,DEBUG);
+  sendData(command,5000,DEBUG);
+  parseData("AT+CIPCLOSE=1\r\n",2000,DEBUG);
+  sendData("AT+CIPCLOSE=1\r\n",2000,DEBUG);
+}
+
+
 
 // This function dispenses one cookie when called
 void dispenseCookie(){
