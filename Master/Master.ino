@@ -37,6 +37,7 @@ RFID rfid;
  
 // variable to hold rfid card number, 0 means no card scanned
 unsigned long last_card_read = 0;
+String rfid_tag = " ";
 
 void setup() {
  
@@ -51,6 +52,8 @@ void setup() {
   initializeWifiModule();
   
   pinMode(PIEZO_PIN, OUTPUT);
+  pinMode(LED_PIN, OUTPUT);
+  digitalWrite(LED_PIN, HIGH);
 }
 
 void loop() {
@@ -60,29 +63,39 @@ void loop() {
   //constantly checks for ID
   while(last_card_read == 0) {
     checkID();
+    lcd.clear(); lcd.cursorHome();
+    lcd.printLCD("fuck i'm stuck");
   }
+  lcd.clear(); lcd.cursorHome();
+  lcd.printLCD("alsdk;fj");
+  buzzAccessGranted();
+  rfid_tag = String(last_card_read);
+  char rfid_arr[7];
+  rfid_tag.toCharArray(rfid_arr, 7);
+  lcd.clear(); lcd.cursorHome();
+  lcd.printLCD(rfid_arr);
+  verify(rfid_tag);
 
   lcd.clear();
   lcd.cursorTo(0, 0);
   
   if(accessGranted){
-    if(last_card_read == 9410488){
-    buzzAccessGranted();
-    lcd.printLCD("Access Granted");
-    delay(2000);
-    add("123"); 
-    incrementCookieCount();
-    lcd.clear();
-    lcd.cursorTo(0,0);
-    lcd.printLCD("This user ate...");
-    lcd.cursorTo(1, 0);
-    lcd.printCharLCD(cookieCount[0]);
-    lcd.printCharLCD(cookieCount[1]);
-    lcd.printLCD(" Cookies!");
+      buzzAccessGranted();
+      lcd.printLCD("Access Granted");
+      delay(2000);
+      add(rfid_tag); 
+      incrementCookieCount();
+      lcd.clear();
+      lcd.cursorTo(0,0);
+      lcd.printLCD("This user ate...");
+      lcd.cursorTo(1, 0);
+      lcd.printCharLCD(cookieCount[0]);
+      lcd.printCharLCD(cookieCount[1]);
+      lcd.printLCD(" Cookies!");
 
-    dispenseCookie();       //dispense cookie  
-    delay(3000); 
-    accessGranted = false;
+      dispenseCookie();       //dispense cookie  
+      delay(3000); 
+      accessGranted = false;
   }
   else{
     buzzAccessDenied();
@@ -96,8 +109,9 @@ void loop() {
   lcd.clear();                   //resets lcd
   lcd.cursorTo(0, 0);
   lcd.printLCD("Verifying");
-  verify("123");
+  verify(rfid_tag);
 }
+
 
 void incrementCookieCount(){
   if (cookieCount[1] == '9'){
@@ -124,9 +138,7 @@ void initializeWifiModule(){
   sendData("AT+CIPSERVER=1,80\r\n",2000,DEBUG); // turn on server on port 80
 
   lcd.clear();                   //resets lcd
-  lcd.cursorTo(0, 0);
-  lcd.printLCD("Verifying");
-  verify("123");
+  lcd.cursorTo(0,0);
 }
 
 void sendData(String command, const int timeout, boolean debug)
@@ -196,7 +208,7 @@ void add(String key_tag){
   command += " HTTP/1.1\r\nHost:cookie4me.herokuapp.com\r\n\r\n";
 
   sendData("AT+CIPSTART=0,\"TCP\",\"www.cookie4me.herokuapp.com\",80\r\n",3000,DEBUG);
-  sendData("AT+CIPSEND=0,61\r\n",1000,DEBUG);
+  sendData("AT+CIPSEND=0,65\r\n",1000,DEBUG);
   sendData(command,5000,DEBUG);
   sendData("AT+CIPCLOSE=0\r\n",2000,DEBUG);
   sendData("AT+CIPCLOSE=0\r\n",2000,DEBUG);
@@ -208,7 +220,7 @@ void verify(String key_tag){
   command += " HTTP/1.1\r\nHost:cookie4me.herokuapp.com\r\n\r\n";
 
   sendData("AT+CIPSTART=1,\"TCP\",\"www.cookie4me.herokuapp.com\",80\r\n",2000,DEBUG);
-  sendData("AT+CIPSEND=1,64\r\n",1000,DEBUG);
+  sendData("AT+CIPSEND=1,68\r\n",1000,DEBUG);
   sendData(command,5000,DEBUG);
   parseData("AT+CIPCLOSE=1\r\n",2000,DEBUG);
   sendData("AT+CIPCLOSE=1\r\n",2000,DEBUG);
@@ -234,11 +246,11 @@ void displayLCDWelcome(){
 
 // This function uses an RFID and checks for card and reads its ID 
 // returns ID
-//void checkID(){
- // if (rfid.is_available()){
- //   last_card_read = rfid.get_rfid_id();
-//  }
-//}
+void checkID(){
+  if (rfid.is_available()){
+    last_card_read = rfid.get_rfid_id();
+  }
+}
 
 // Briefly buzzes the piezo if RFID access granted 
 void buzzAccessGranted(){

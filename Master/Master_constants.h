@@ -10,6 +10,8 @@
 #define LCD_DB2 9
 #define LCD_DB3 8
 
+#define LED_PIN 7
+
 #define COOKIE_SERVO 4
 
 #define WIFI_MODULE1 0
