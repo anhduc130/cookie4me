@@ -6,7 +6,7 @@
 #include "Master_constants.h"
 
 #include <myLCD.h>
-//#include <Rfid.h>
+#include <Rfid.h>
 
 #include <Servo.h>
 #include <stdio.h>
@@ -33,7 +33,8 @@ Servo cookie_servo;  //Create a new servo object to control the cookie arm
 myLCD lcd(LCD_RS, LCD_EN, LCD_DB0, LCD_DB1, LCD_DB2, LCD_DB3);
 
 // create rfid object (digital IO pins 2 and 3)
-// RFID rfid;
+RFID rfid;
+ 
 // variable to hold rfid card number, 0 means no card scanned
 unsigned long last_card_read = 0;
 
@@ -45,8 +46,7 @@ void setup() {
   
   lcd.initialize();
   displayLCDWelcome();
-  
-//  rfid.initialize();
+  rfid.initialize();
 
   initializeWifiModule();
   
@@ -56,17 +56,18 @@ void setup() {
 void loop() {
   //displays welcome message
   displayLCDWelcome();
+  
   //constantly checks for ID
-//  while(last_card_read == 0) {
- //   checkID();
-//  }
+  while(last_card_read == 0) {
+    checkID();
+  }
 
   lcd.clear();
   lcd.cursorTo(0, 0);
   
   if(accessGranted){
- // if(last_card_read == 9410488){
-//  buzzAccessGranted();
+    if(last_card_read == 9410488){
+    buzzAccessGranted();
     lcd.printLCD("Access Granted");
     delay(2000);
     add("123"); 
