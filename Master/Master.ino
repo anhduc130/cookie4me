@@ -6,7 +6,7 @@
 #include "Master_constants.h"
 
 #include <myLCD.h>
-#include <Rfid.h>
+//#include <Rfid.h>
 
 #include <Servo.h>
 #include <stdio.h>
@@ -22,8 +22,10 @@ SoftwareSerial esp8266(1,0); // make RX Arduino line is pin 2, make TX Arduino l
                              
 #define SSID "TELUS6815"
 #define PASSWORD "bde840375e"
-#define BUFFER_SIZE 201
-char cookieCount[10];
+#define BUFFER_SIZE 195
+
+volatile char cookieCount[2];
+boolean accessGranted = false;
 
 Servo cookie_servo;  //Create a new servo object to control the cookie arm
 
@@ -31,7 +33,7 @@ Servo cookie_servo;  //Create a new servo object to control the cookie arm
 myLCD lcd(LCD_RS, LCD_EN, LCD_DB0, LCD_DB1, LCD_DB2, LCD_DB3);
 
 // create rfid object (digital IO pins 2 and 3)
-RFID rfid;
+// RFID rfid;
 // variable to hold rfid card number, 0 means no card scanned
 unsigned long last_card_read = 0;
 
@@ -42,8 +44,9 @@ void setup() {
   cookie_servo.write(0);
   
   lcd.initialize();
+  displayLCDWelcome();
   
-  rfid.initialize();
+//  rfid.initialize();
 
   initializeWifiModule();
   
@@ -53,37 +56,36 @@ void setup() {
 void loop() {
   //displays welcome message
   displayLCDWelcome();
-
   //constantly checks for ID
-  while(last_card_read == 0) {
-    checkID();
-  }
+//  while(last_card_read == 0) {
+ //   checkID();
+//  }
 
   lcd.clear();
   lcd.cursorTo(0, 0);
   
-  // send RFID tag with anh duc then to joey and confirm
-  boolean accessGranted;
-  char *name = "Bob";
-  char *numCookies = "25";
-  
-  //if(accessGranted){
-  if(last_card_read == 9410488){
-    buzzAccessGranted();
-    lcd.printLCD("Enjoy, ");
-    lcd.printLCD(name);
-    lcd.printLCD("!");
-    lcd.cursorTo(1,0);
-    lcd.printLCD("Total: ");
-    lcd.printChar(cookieCount[0]);
-    lcd.cursorTo(0, 0);
+  if(accessGranted){
+ // if(last_card_read == 9410488){
+//  buzzAccessGranted();
+    lcd.printLCD("Access Granted");
+    delay(2000);
+    add("123"); 
+    incrementCookieCount();
+    lcd.clear();
+    lcd.cursorTo(0,0);
+    lcd.printLCD("This user ate...");
+    lcd.cursorTo(1, 0);
+    lcd.printCharLCD(cookieCount[0]);
+    lcd.printCharLCD(cookieCount[1]);
+    lcd.printLCD(" Cookies!");
 
-    dispenseCookie();       //dispense cookie   
-    delay(1000);
+    dispenseCookie();       //dispense cookie  
+    delay(3000); 
+    accessGranted = false;
   }
   else{
-    lcd.printLCD("Access Denied.");
     buzzAccessDenied();
+    lcd.printLCD("Access Denied.");
     delay(2000);
   }
   
@@ -92,10 +94,25 @@ void loop() {
   
   lcd.clear();                   //resets lcd
   lcd.cursorTo(0, 0);
+  lcd.printLCD("Verifying");
+  verify("123");
+}
+
+void incrementCookieCount(){
+  if (cookieCount[1] == '9'){
+    cookieCount[0]++;
+    cookieCount[1] = '0';
+  }
+  else {
+    cookieCount[1]++; 
+  }
 }
 
 void initializeWifiModule(){
   pinMode(2,OUTPUT);
+  lcd.clear();                   //resets lcd
+  lcd.cursorTo(0, 0);
+  lcd.printLCD("Connecting");
   esp8266.begin(115200); // your esp's baud rate might be different
 
   sendData("AT+RST\r\n",1000,DEBUG); // reset module
@@ -105,6 +122,9 @@ void initializeWifiModule(){
   sendData("AT+CIPMUX=1\r\n",2000,DEBUG); // configure for multiple connections
   sendData("AT+CIPSERVER=1,80\r\n",2000,DEBUG); // turn on server on port 80
 
+  lcd.clear();                   //resets lcd
+  lcd.cursorTo(0, 0);
+  lcd.printLCD("Verifying");
   verify("123");
 }
 
@@ -124,8 +144,6 @@ void sendData(String command, const int timeout, boolean debug)
 void parseData(String command, const int timeout, boolean debug)
 {
     char response[BUFFER_SIZE];
-    int count = 0;
-    int test = 0;
     
     esp8266.print(command); // send the read character to the esp8266
     
@@ -142,20 +160,36 @@ void parseData(String command, const int timeout, boolean debug)
         }
        }  
     }
-
     esp8266.end();
     Serial.begin(115200);
-    while (response[count] != ','){
-      cookieCount[count] = response[count];
-      count++;
-    }
 
-    if (cookieCount[0] == '7'){
-      digitalWrite(2,HIGH);
-    }
+  // Finding the comma
+  int comma_index = 0;
+  while(response[comma_index] != ','){
+    comma_index++;
+  }
+  
+  char tens_digit = response[comma_index-2];
+  char ones_digit = response[comma_index-1];
+  
+  cookieCount[0] = tens_digit;
+  cookieCount[1] = ones_digit;
+
+  if (cookieCount[0] == '=' && cookieCount[1] == '0'){
+    accessGranted = false;
+  }
+  else {
+    accessGranted = true;
+  }
+
+  Serial.end();
+  esp8266.begin(115200);
 }
 
 void add(String key_tag){
+  lcd.clear();
+  lcd.cursorTo(0,0);
+  lcd.printLCD("Adding...");
   String command = "GET /add/";
   command += key_tag;
   command += " HTTP/1.1\r\nHost:cookie4me.herokuapp.com\r\n\r\n";
@@ -199,11 +233,11 @@ void displayLCDWelcome(){
 
 // This function uses an RFID and checks for card and reads its ID 
 // returns ID
-void checkID(){
-  if (rfid.is_available()){
-    last_card_read = rfid.get_rfid_id();
-  }
-}
+//void checkID(){
+ // if (rfid.is_available()){
+ //   last_card_read = rfid.get_rfid_id();
+//  }
+//}
 
 // Briefly buzzes the piezo if RFID access granted 
 void buzzAccessGranted(){

@@ -3,12 +3,12 @@
 */
 
 /* Arduino pin assignments */
-#define LCD_RS 12
-#define LCD_EN 11
-#define LCD_DB0 10
-#define LCD_DB1 9
-#define LCD_DB2 8
-#define LCD_DB3 7
+#define LCD_RS 13
+#define LCD_EN 12
+#define LCD_DB0 11
+#define LCD_DB1 10
+#define LCD_DB2 9
+#define LCD_DB3 8
 
 #define COOKIE_SERVO 4
 
