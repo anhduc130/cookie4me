@@ -20,8 +20,6 @@ SoftwareSerial esp8266(1,0); // make RX Arduino line is pin 2, make TX Arduino l
                              // This means that you need to connect the TX line from the esp to the Arduino's pin 2
                              // and the RX line from the esp to the Arduino's pin 3
                              
-#define SSID "TELUS6815"
-#define PASSWORD "bde840375e"
 #define BUFFER_SIZE 195
 
 volatile char cookieCount[2];
