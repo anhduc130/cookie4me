@@ -45,10 +45,18 @@ void setup() {
     cookie_servo.attach(COOKIE_SERVO);  
     cookie_servo.write(0);
   
+    // initialize lcd display
     lcd.initialize();
-  
+    
+    // display messages on LCD while wifi is intializing 
+    lcd.clear();                   
+    lcd.cursorTo(0, 0);
+    lcd.printLCD("Connecting...");
+    lcd.cursorTo(1,0);
+    lcd.printLCD("Please wait.");
     initializeWifiModule();
   
+    // initialize rfid reader
     rfid.initialize();
 
     // initialize piezo buzzer  
@@ -68,40 +76,57 @@ void loop() {
         checkID();
     }
 
+    // *beeps and displays message if RFID tag tapped 
+    buzzRFIDTapped();
+    lcd.clear();
+    lcd.cursorHome();
+    lcd.printLCD("Read successful!");
+    delay(1000);    // reading delay
+    
+    // convert the tag number to a String
     rfid_tag = String(last_card_read);
-    // char rfid_arr[7];
-    // rfid_tag.toCharArray(rfid_arr, 7);
-    // lcd.clear(); lcd.cursorHome();
-    // lcd.printLCD(rfid_arr);
+     
+    // verify RFID tag by sending it though the WiFi module to the web backend
+    lcd.cursorTo(1,0);
+    lcd.printLCD("Verifying...");
     verify(rfid_tag);
 
     lcd.clear();
     lcd.cursorTo(0, 0);
   
+    // true if the RFID tag is located in the web database
     if(accessGranted){
         buzzAccessGranted();
-        lcd.printLCD("Access Granted");
-        delay(2000);
-      
-        add(rfid_tag); 
+        lcd.printLCD("Access Granted!");
+                
+        dispenseCookie();       // moves servo arm to push a cookie out 
+        
+        // increase the amount of cookies the user has eaten -> updates web database
+        add(rfid_tag);              
         incrementCookieCount();
       
+        // display their eaten cookie count on the LCD 
         lcd.clear();
         lcd.cursorTo(0,0);
-        lcd.printLCD("This user ate...");
+        lcd.printLCD("You've eaten...");
         lcd.cursorTo(1, 0);
         lcd.printCharLCD(cookieCount[0]);
         lcd.printCharLCD(cookieCount[1]);
-        lcd.printLCD(" Cookies!");
+        if(cookieCount[0] == ' ' && cookieCount[1] == '1'){
+          lcd.printLCD(" cookie!");
+        }
+        else {
+          lcd.printLCD(" cookies!");
+        }
 
-        dispenseCookie();       //dispense cookie  
+        // reading delay
         delay(3000); 
       
         accessGranted = false;
     }
     else{
+        lcd.printLCD("Access Denied!");
         buzzAccessDenied();
-        lcd.printLCD("Access Denied.");
         delay(2000);
     }
   
@@ -110,7 +135,7 @@ void loop() {
   
     lcd.clear();                   //resets lcd
     lcd.cursorTo(0, 0);
-    rfid.initialize();
+    rfid.initialize();              // reset RFID scanner
 }
 
 
@@ -125,9 +150,6 @@ void incrementCookieCount(){
 }
 
 void initializeWifiModule(){
-    lcd.clear();                   //resets lcd
-    lcd.cursorTo(0, 0);
-    lcd.printLCD("Connecting");
     esp8266.begin(115200); // your esp's baud rate might be different
 
     sendData("AT+RST\r\n",1000,DEBUG); // reset module
@@ -187,12 +209,14 @@ void parseData(String command, const int timeout, boolean debug)
   
     cookieCount[0] = tens_digit;
     cookieCount[1] = ones_digit;
+    Serial.write(cookieCount[0]);
+    Serial.write(cookieCount[1]);
 
-    if (cookieCount[0] == 'e' || cookieCount[1] == 'e'){
-        accessGranted = false;
+    if ((cookieCount[1] >= '0' && cookieCount[1] <= '9') && ( (cookieCount[0] >= '0' && cookieCount[0] <='9' ) || cookieCount[0] == ' ' )){
+        accessGranted = true;
     }
     else {
-        accessGranted = true;
+        accessGranted = false;
     }
 
     Serial.end();
@@ -203,7 +227,9 @@ void add(String key_tag){
     //esp8266.begin(115200);
     lcd.clear();
     lcd.cursorTo(0,0);
-    lcd.printLCD("Adding...");
+    lcd.printLCD("Updating your");
+    lcd.cursorTo(1,0);
+    lcd.printLCD("cookie count...");
     String command = "GET /add/";
     command += key_tag;
     command += " HTTP/1.1\r\nHost:cookie4me.herokuapp.com\r\n\r\n";
@@ -241,11 +267,11 @@ void dispenseCookie(){
     cookie_servo.write(0);
 }
 
-// Welcome message
+// LCD welcome/default message for the cookie dispenser
 void displayLCDWelcome(){
     lcd.printLCD("Please tap RFID.");
     lcd.cursorTo(1,0);
-    lcd.printLCD("(: cookie4.me ;)"); // make this scroll?
+    lcd.printLCD("   cookie4.me   "); // make this scroll?
 }
 
 // This function uses an RFID and checks for card and reads its ID 
@@ -272,4 +298,12 @@ void buzzAccessDenied(){
         delay(100);
     }
 }
+
+// Short beep fromo the piezo if RFID tag read successfully 
+void buzzRFIDTapped(){
+    analogWrite(PIEZO_PIN, 329.63);
+    delay(300);
+    analogWrite(PIEZO_PIN, 0);
+}
+
 
